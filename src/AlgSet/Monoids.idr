@@ -22,7 +22,6 @@ record IsMonoid (t : Type) (s : Set t) (e : t) (m : SetOp2 {t} s) where
     constructor MkMonoidProp
 
     isSemigroup : IsSemigroup t s m
-
-    eInSet : s e
+    eInSet      : s e
     hasIdentity : HasIdentity s e eInSet m
 

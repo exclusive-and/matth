@@ -18,5 +18,5 @@ IsAssociative {t} s m = (x : t) -> (p : s x)
 public export
 record IsSemigroup (t : Type) (s : Set t) (m : SetOp2 {t} s) where
     constructor MkSemigroupProp
-
+    isMagma       : IsMagma s m
     isAssociative : IsAssociative s m

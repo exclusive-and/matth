@@ -13,13 +13,11 @@ IsClosed {t} s m =
 public export
 record IsMagma (t : Type) (s : Set t) (m : SetOp2 s) where
     constructor MkMagmaProp
-    
     isClosed : IsClosed s m
 
 public export
 record Magma (t : Type) (s : Set t) where
     constructor MkMagma
-    mult : (x : t) -> s x -> (y : t) -> s y -> t
-
+    mult    : (x : t) -> s x -> (y : t) -> s y -> t
     isMagma : IsMagma t s mult
 
