@@ -33,12 +33,17 @@ XMagma Magma where
     xOperation = magmaOp
     xIsClosed  = isClosed
 
-{-
+
 public export
 record SubMagma (t : Type) where
     constructor MkSubMagma
     superMagma : Magma t
     subset     : Set t
     isSubset   : IsSubset subset (carrierSet superMagma)
-    isClosed   : IsClosed subset (
--}
+    isClosed   : IsClosed subset (magmaOp superMagma)
+
+public export
+XMagma SubMagma where
+    xCarrier     = subset
+    xOperation m = let super = superMagma m in magmaOp super
+    xIsClosed    = isClosed

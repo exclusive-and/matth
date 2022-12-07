@@ -9,13 +9,11 @@ import AlgSet.Magma
 
 
 public export
-IsAssociative : {t : Type} -> (s : Set t) -> (t -> t -> t) -> Type
-IsAssociative {t} s m = (x : t) -> (p : s x)
-                     -> (y : t) -> (q : s y)
-                     -> (z : t) -> (r : s z)
-                     -> (u : s (m x y))
-                     -> (v : s (m y z))
-                     -> Id (m x (m y z)) (m (m x y) z)
+IsAssociative : {t : Type} -> (t -> t -> t) -> Type
+IsAssociative {t} m = (x : t)
+                   -> (y : t)
+                   -> (z : t)
+                   -> Id (m x (m y z)) (m (m x y) z)
 
 public export
 record Semigroup (t : Type) where
@@ -23,11 +21,11 @@ record Semigroup (t : Type) where
     carrierSet      : Set t
     semigroupOp     : t -> t -> t
     isClosed        : IsClosed carrierSet semigroupOp
-    isAssociative   : IsAssociative carrierSet semigroupOp
+    isAssociative   : IsAssociative semigroupOp
 
 public export
 interface XMagma r => XSemigroup (r : Type -> Type) where
-    xIsAssociative  : (rec : r t) -> IsAssociative (xCarrier rec) (xOperation rec)
+    xIsAssociative  : (rec : r t) -> IsAssociative (xOperation rec)
 
 public export
 xSemigroup : XSemigroup r => r t -> Semigroup t
@@ -45,3 +43,27 @@ XMagma Semigroup where
 public export
 XSemigroup Semigroup where
     xIsAssociative = isAssociative
+
+
+public export
+record SubSemigroup (t : Type) where
+    constructor MkSubMagma
+    superSemigroup : Semigroup t
+    subset         : Set t
+    isSubset       : IsSubset subset (carrierSet superSemigroup)
+    isClosed       : IsClosed subset (semigroupOp superSemigroup)
+
+public export
+XMagma SubSemigroup where
+    xCarrier     = subset
+    xOperation m = let super = superSemigroup m in semigroupOp super
+    xIsClosed    = isClosed
+
+public export
+XSemigroup SubSemigroup where
+    xIsAssociative m =
+      let
+        super = superSemigroup m
+      in
+        isAssociative super
+
