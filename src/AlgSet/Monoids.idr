@@ -12,24 +12,22 @@ import AlgSet.Semigroups
 
 public export
 IsIdentity : {t : Type}
-           -> (s : Set t)
-           -> (e : t)
-           -> s e
-           -> SetOp2 {t} s
-           -> Type
-IsIdentity {t} s e p m =
-    (x : t) -> (q : s x) -> Id (m e p x q) x
+          -> (s : Set t)
+          -> (e : t)
+          -> (t -> t -> t)
+          -> Type
+IsIdentity {t} s e m = (x : t) -> Id (m e x) x
 
 public export
 record Monoid (t : Type) where
     constructor MkMonoid
     carrierSet    : Set t
-    monoidOp      : SetOp2 carrierSet
+    monoidOp      : t -> t -> t
     isClosed      : IsClosed carrierSet monoidOp
     isAssociative : IsAssociative carrierSet monoidOp
     identity      : t
     hasIdentity   : carrierSet identity
-    isIdentity    : IsIdentity carrierSet identity hasIdentity monoidOp
+    isIdentity    : IsIdentity carrierSet identity monoidOp
 
 public export
 interface XSemigroup r => XMonoid (r : Type -> Type) where
@@ -37,7 +35,7 @@ interface XSemigroup r => XMonoid (r : Type -> Type) where
     xHasIdentity : (rec : r t) -> xCarrier rec (xIdentity rec)
     xIsIdentity  : (rec : r t)
                 -> IsIdentity (xCarrier rec) (xIdentity rec)
-                              (xHasIdentity rec) (xOperation rec)
+                              (xOperation rec)
 
 public export
 xMonoid : XMonoid r => r t -> Monoid t

@@ -6,21 +6,21 @@ import Theory.Sets
 
 
 public export
-IsClosed : {t : Type} -> (s : Set t) -> SetOp2 s -> Type
+IsClosed : {t : Type} -> (s : Set t) -> (t -> t -> t) -> Type
 IsClosed {t} s m =
-    (x : t) -> (p : s x) -> (y : t) -> (q : s y) -> s (m x p y q)
+    (x : t) -> (p : s x) -> (y : t) -> (q : s y) -> s (m x y)
 
 public export
 record Magma (t : Type) where
     constructor MkMagma
     carrierSet : Set t
-    magmaOp    : SetOp2 carrierSet
+    magmaOp    : t -> t -> t
     isClosed   : IsClosed carrierSet magmaOp
 
 public export
 interface XMagma (r : Type -> Type) where
     xCarrier   : {t : Type} -> r t -> Set t
-    xOperation : (rec : r t) -> SetOp2 (xCarrier rec)
+    xOperation : (rec : r t) -> t -> t -> t
     xIsClosed  : (rec : r t) -> IsClosed (xCarrier rec) (xOperation rec)
 
 public export
@@ -32,3 +32,13 @@ XMagma Magma where
     xCarrier   = carrierSet
     xOperation = magmaOp
     xIsClosed  = isClosed
+
+{-
+public export
+record SubMagma (t : Type) where
+    constructor MkSubMagma
+    superMagma : Magma t
+    subset     : Set t
+    isSubset   : IsSubset subset (carrierSet superMagma)
+    isClosed   : IsClosed subset (
+-}

@@ -15,44 +15,41 @@ import AlgSet.Monoids
 public export
 HasInverse : {t : Type}
           -> (s : Set t)
-          -> (inv : (x : t) -> s x -> t)
+          -> (inv : (x : t) -> t)
           -> Type
-HasInverse {t} s inv = (x : t) -> (p : s x) -> s (inv x p)
+HasInverse {t} s inv = (x : t) -> s x -> s (inv x)
 
 public export
 IsInverse : {t : Type}
          -> (s : Set t)
          -> (e : t)
-         -> s e
-         -> SetOp2 {t} s
-         -> (inv : SetOp1 {t} s)
-         -> HasInverse {t} s inv
+         -> (t -> t -> t)
+         -> (inv : (x : t) -> t)
          -> Type
-IsInverse {t} s e p m inv hasInv =
-    (x : t) -> (q : s x) -> Id (m (inv x q) (hasInv x q) x q) e
+IsInverse {t} s e m inv = (x : t) -> Id (m (inv x) x) e
 
 public export
 record Group (t : Type) where
     constructor MkGroup
     carrierSet    : Set t
-    groupOp       : SetOp2 carrierSet
+    groupOp       : t -> t -> t
     isClosed      : IsClosed carrierSet groupOp
     isAssociative : IsAssociative carrierSet groupOp
     identity      : t
     hasIdentity   : carrierSet identity
-    isIdentity    : IsIdentity carrierSet identity hasIdentity groupOp
-    invert        : SetOp1 carrierSet
+    isIdentity    : IsIdentity carrierSet identity groupOp
+    invert        : t -> t
     hasInverse    : HasInverse carrierSet invert
-    isInverse     : IsInverse carrierSet identity hasIdentity
-                              groupOp invert hasInverse
+    isInverse     : IsInverse carrierSet identity
+                              groupOp invert
 
 public export
 interface XMonoid r => XGroup (r : Type -> Type) where
-    xInvert     : (rec : r t) -> SetOp1 (xCarrier rec)
+    xInvert     : (rec : r t) -> t -> t
     xHasInverse : (rec : r t) -> HasInverse (xCarrier rec) (xInvert rec)
     xIsInverse  : (rec : r t)
-               -> IsInverse (xCarrier rec) (xIdentity rec) (xHasIdentity rec)
-                            (xOperation rec) (xInvert rec) (xHasInverse rec)
+               -> IsInverse (xCarrier rec) (xIdentity rec)
+                            (xOperation rec) (xInvert rec)
 
 public export
 xGroup : XGroup r => r t -> Group t

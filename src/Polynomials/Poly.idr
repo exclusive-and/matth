@@ -29,7 +29,7 @@ polyAdd {r} (Poly aCoeffs) (Poly bCoeffs) =
         add      = xOperation addGroup
         closed   = xIsClosed addGroup
       in
-        MkDPair (add x p y q) (closed x p y q)
+        MkDPair (add x y) (closed x p y q)
 
 
 polyMul : {r : Ring t} -> Polynomial t r -> Polynomial t r -> Polynomial t r
@@ -43,7 +43,7 @@ polyMul {r} (Poly aCoeffs) (Poly bCoeffs) =
         mul          = xOperation mulSemigroup
         closed       = xIsClosed mulSemigroup
       in
-        MkDPair (mul x p y q) (closed x p y q)
+        MkDPair (mul x y) (closed x p y q)
 
     goReduce : DPair t (carrierSet r) -> DPair t (carrierSet r) -> DPair t (carrierSet r)
     goReduce (x ** p) (acc ** accq) =
@@ -52,7 +52,7 @@ polyMul {r} (Poly aCoeffs) (Poly bCoeffs) =
         add      = xOperation addGroup
         closed   = xIsClosed addGroup
       in
-        MkDPair (add x p acc accq) (closed x p acc accq)
+        MkDPair (add x acc) (closed x p acc accq)
 
     reduce : List (DPair t (carrierSet r)) -> DPair t (carrierSet r)
     reduce Nil       = MkDPair (addIdentity r) (addHasIdentity r)
@@ -60,24 +60,24 @@ polyMul {r} (Poly aCoeffs) (Poly bCoeffs) =
 
 
 
-postulate intAddAssoc : IsAssociative {t = Int} (\x => ()) (\x, p, y, q => x + y)
+postulate intAddAssoc : IsAssociative {t = Int} (\x => ()) (+)
 
-postulate intAddId : IsIdentity {t = Int} (\x => ()) 0 () (\x, p, y, q => x + y)
+postulate intAddId : IsIdentity {t = Int} (\x => ()) 0 (+)
 
-postulate intAddInv : IsInverse {t = Int} (\x => ()) 0 () (\x, p, y, q => x + y) (\x, p => negate x) (\x, p => ())
+postulate intAddInv : IsInverse {t = Int} (\x => ()) 0 (+) negate
 
 
-postulate intMulAssoc : IsAssociative {t = Int} (\x => ()) (\x, p, y, q => x * y)
+postulate intMulAssoc : IsAssociative {t = Int} (\x => ()) (*)
 
 export
 intRing : Ring Int
 intRing =
     MkRing
-        (\x => ()) (\x, p, y, q => x + y) (\x, p, y, q => ())
+        (\x => ()) (+) (\x, p, y, q => ())
         intAddAssoc
         0 () intAddId
-        (\x, p => negate x) (\x, p => ()) intAddInv
-        (\x, p, y, q => x * y) (\x, p, y, q => ())
+        negate (\x, p => ()) intAddInv
+        (*) (\x, p, y, q => ())
         intMulAssoc
 
 export

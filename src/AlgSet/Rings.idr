@@ -18,18 +18,18 @@ record Ring (t : Type) where
     constructor MkRing
     carrierSet  : Set t
     -- Addition is an Abelian group
-    addOp            : SetOp2 carrierSet
+    addOp            : t -> t -> t
     addIsClosed      : IsClosed carrierSet addOp
     addIsAssociative : IsAssociative carrierSet addOp
     addIdentity      : t
     addHasIdentity   : carrierSet addIdentity
-    addIsIdentity    : IsIdentity carrierSet addIdentity addHasIdentity addOp
-    addInvert        : SetOp1 carrierSet
+    addIsIdentity    : IsIdentity carrierSet addIdentity addOp
+    addInvert        : t -> t
     addHasInverse    : HasInverse carrierSet addInvert
-    addIsInverse     : IsInverse carrierSet addIdentity addHasIdentity
-                                 addOp addInvert addHasInverse
+    addIsInverse     : IsInverse carrierSet addIdentity
+                                 addOp addInvert
     -- Multiplication is a semigroup
-    mulOp            : SetOp2 carrierSet
+    mulOp            : t -> t -> t
     mulIsClosed      : IsClosed carrierSet mulOp
     mulIsAssociative : IsAssociative carrierSet mulOp
 
