@@ -83,13 +83,18 @@ subringIsRing sub =
 public export
 record RingHom (domainTy : Type) (codomainTy : Type) where
     constructor MkRingHom
-    domain   : Ring domainTy
-    codomain : Ring codomainTy
+    domain       : Ring domainTy
+    codomain     : Ring codomainTy
 
     homMap : domainTy -> codomainTy
 
     preservesAdd : HomPreserves (addOp domain) (addOp codomain) homMap
     preservesMul : HomPreserves (mulOp domain) (mulOp codomain) homMap
+
+||| Ring endomorphisms: trivial homomorphisms.
+public export
+ringEndo : Ring t -> RingHom t t
+ringEndo r = MkRingHom r r id (\x, y => refl) (\x, y => refl)
 
 
 ||| Example rings (TODO: prove laws)
@@ -152,11 +157,12 @@ evenIntRing : Ring Int
 evenIntRing = subringIsRing evenIntSubInt
 
 ||| Homomorphism from integer ring to even ring.
-public export
+export
 intToEvenIntHom : RingHom Int Int
 intToEvenIntHom =
     MkRingHom
-        intRing evenIntRing
+        intRing
+        evenIntRing
         (* 2)
         preservesAdd
         preservesMul

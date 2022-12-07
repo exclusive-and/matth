@@ -76,27 +76,29 @@ polyMul {r} (Poly aCoeffs) (Poly bCoeffs) =
 
     reduce (x :: xs) = goReduce x (reduce xs)
 
+||| Evaluate a polynomial using the substitution principle.
+public export total
+polyEval : (hom : RingHom domainTy codomainTy)
+        -> codomainTy
+        -> Polynomial domainTy (domain hom)
+        -> codomainTy
 
-public export
-polyAddAssoc : IsAssociative polyAdd
-polyAddAssoc = ?realPolyAddAssoc
+polyEval hom a (Poly xs) = go xs where
+    go : List (DPair domainTy (carrierSet (domain hom)))
+      -> codomainTy
 
-public export
-polyAddCommutes : IsCommutative polyAdd
-polyAddCommutes = ?realPolyAddCommute
+    go ((x ** _) :: xs) =
+      let
+        coadd = addOp $ codomain hom
+        comul = mulOp $ codomain hom
+      in
+        coadd (homMap hom x) $ comul (go xs) a
 
-public export
-nilPolyIsPolyAddId : IsIdentity (Poly Nil) polyAdd
-nilPolyIsPolyAddId = ?realNilPolyIsPolyAddId
+    go _ = addIdentity (codomain hom)
 
-public export
-isPolyAddInverse : {r : Ring t} -> IsInverse (Poly Nil) polyAdd polyAddInvert
-isPolyAddInverse = ?realIsPolyAddInverse
-
-public export
-polyMulAssoc : IsAssociative polyMul
-polyMulAssoc = ?realPolyMulAssoc
-
+||| Polynomials inherit ring structure from their coefficients.
+|||
+||| TODO: the rest of the ring laws.
 public export
 polynomialRing : {r : Ring t} -> Ring (Polynomial t r)
 polynomialRing {r} =
@@ -109,10 +111,25 @@ polynomialRing {r} =
         polyAddAssoc
         polyAddCommutes
         (Poly Nil) () nilPolyIsPolyAddId
-        polyAddInvert (\x, p => ()) (isPolyAddInverse {r})
+        polyAddInvert (\x, p => ()) (isPolyAddInverse)
         -- Polynomial multiplication semigroup laws
         polyMul (\x, p, y, q => ())
         polyMulAssoc
+  where
+    polyAddAssoc : IsAssociative polyAdd
+    polyAddAssoc = ?realPolyAddAssoc
+
+    polyAddCommutes : IsCommutative polyAdd
+    polyAddCommutes = ?realPolyAddCommute
+
+    nilPolyIsPolyAddId : IsIdentity (Poly Nil) polyAdd
+    nilPolyIsPolyAddId = ?realNilPolyIsPolyAddId
+
+    isPolyAddInverse : IsInverse (Poly Nil) polyAdd polyAddInvert
+    isPolyAddInverse = ?realIsPolyAddInverse
+
+    polyMulAssoc : IsAssociative polyMul
+    polyMulAssoc = ?realPolyMulAssoc
 
 
 public export
