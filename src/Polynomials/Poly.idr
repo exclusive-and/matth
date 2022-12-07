@@ -82,6 +82,10 @@ polyAddAssoc : IsAssociative polyAdd
 polyAddAssoc = ?realPolyAddAssoc
 
 public export
+polyAddCommutes : IsCommutative polyAdd
+polyAddCommutes = ?realPolyAddCommute
+
+public export
 nilPolyIsPolyAddId : IsIdentity (Poly Nil) polyAdd
 nilPolyIsPolyAddId = ?realNilPolyIsPolyAddId
 
@@ -103,6 +107,7 @@ polynomialRing {r} =
         -- Polynomial addition group laws
         polyAdd (\x, p, y, q => ())
         polyAddAssoc
+        polyAddCommutes
         (Poly Nil) () nilPolyIsPolyAddId
         polyAddInvert (\x, p => ()) (isPolyAddInverse {r})
         -- Polynomial multiplication semigroup laws
@@ -110,30 +115,10 @@ polynomialRing {r} =
         polyMulAssoc
 
 
-postulate intAddAssoc : IsAssociative {t = Int} (+)
-
-postulate intAddId : IsIdentity {t = Int} 0 (+)
-
-postulate intAddInv : IsInverse {t = Int} 0 (+) negate
-
-
-postulate intMulAssoc : IsAssociative {t = Int} (*)
-
 export
-intRing : Ring Int
-intRing =
-    MkRing
-        (\x => ()) (+) (\x, p, y, q => ())
-        intAddAssoc
-        0 () intAddId
-        negate (\x, p => ()) intAddInv
-        (*) (\x, p, y, q => ())
-        intMulAssoc
-
-export
-poly1 : Polynomial Int Polynomials.Poly.intRing
+poly1 : Polynomial Int AlgSet.Rings.intRing
 poly1 = Poly [MkDPair 1 (), MkDPair 0 (), MkDPair 1 ()]
 
 export
-poly2 : Polynomial Int Polynomials.Poly.intRing
+poly2 : Polynomial Int AlgSet.Rings.intRing
 poly2 = Poly [MkDPair 7 (), MkDPair 2 ()]

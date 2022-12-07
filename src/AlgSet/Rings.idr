@@ -21,6 +21,7 @@ record Ring (t : Type) where
     addOp            : t -> t -> t
     addIsClosed      : IsClosed carrierSet addOp
     addIsAssociative : IsAssociative addOp
+    addIsCommutative : IsCommutative addOp
     addIdentity      : t
     addHasIdentity   : carrierSet addIdentity
     addIsIdentity    : IsIdentity addIdentity addOp
@@ -33,11 +34,12 @@ record Ring (t : Type) where
     mulIsAssociative : IsAssociative mulOp
 
 public export
-ringAddGroup : Ring t -> Group t
+ringAddGroup : Ring t -> AbelianGroup t
 ringAddGroup r =
-    MkGroup
+    MkAbelianGroup
         (carrierSet r) (addOp r) (addIsClosed r)
         (addIsAssociative r)
+        (addIsCommutative r)
         (addIdentity r) (addHasIdentity r) (addIsIdentity r)
         (addInvert r) (addHasInverse r) (addIsInverse r)
 
@@ -70,7 +72,38 @@ subringIsRing sub =
     MkRing
         (subset sub) (addOp super) (addIsClosed sub)
         (addIsAssociative super)
+        (addIsCommutative super)
         (addIdentity super) (addHasIdentity sub) (addIsIdentity super)
         (addInvert super) (addHasInverse sub) (addIsInverse super)
         (mulOp super) (mulIsClosed sub)
         (mulIsAssociative super)
+
+
+||| Example rings (TODO: prove laws)
+
+public export
+intRing : Ring Int
+intRing =
+    MkRing
+        (\x => ()) (+) (\x, p, y, q => ())
+        intAddAssoc
+        intAddCommutes
+        0 () zeroIsIntAddId
+        negate (\x, p => ()) negateIsIntAddInv
+        (*) (\x, p, y, q => ())
+        intMulAssoc
+  where
+    intAddAssoc : IsAssociative {t = Int} (+)
+    intAddAssoc = ?realIntAddAssoc
+
+    intAddCommutes : IsCommutative {t = Int} (+)
+    intAddCommutes = ?realIntAddCommutes
+
+    zeroIsIntAddId : IsIdentity {t = Int} 0 (+)
+    zeroIsIntAddId = ?realZeroIsIntAddId
+
+    negateIsIntAddInv : IsInverse {t = Int} 0 (+) negate
+    negateIsIntAddInv = ?realNegateIsIntAddInv
+
+    intMulAssoc : IsAssociative {t = Int} (*)
+    intMulAssoc = ?realIntMulAssoc

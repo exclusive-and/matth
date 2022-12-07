@@ -110,3 +110,45 @@ XMonoid SubGroup where
     xHasIdentity  = hasIdentity
     xIsIdentity m = let super = superGroup m in isIdentity super
 
+
+public export
+IsCommutative : {t : Type} -> (t -> t -> t) -> Type
+IsCommutative {t} m =
+    (x : t) -> (y : t) -> Id (m x y) (m y x)
+
+public export
+record AbelianGroup (t : Type) where
+    constructor MkAbelianGroup
+    carrierSet    : Set t
+    groupOp       : t -> t -> t
+    isClosed      : IsClosed carrierSet groupOp
+    isAssociative : IsAssociative groupOp
+    isCommutative : IsCommutative groupOp
+    identity      : t
+    hasIdentity   : carrierSet identity
+    isIdentity    : IsIdentity identity groupOp
+    invert        : t -> t
+    hasInverse    : HasInverse carrierSet invert
+    isInverse     : IsInverse identity  groupOp invert
+
+public export
+XMagma AbelianGroup where
+    xCarrier    = carrierSet
+    xOperation  = groupOp
+    xIsClosed   = isClosed
+
+public export
+XSemigroup AbelianGroup where
+    xIsAssociative = isAssociative
+
+public export
+XMonoid AbelianGroup where
+    xIdentity    = identity
+    xHasIdentity = hasIdentity
+    xIsIdentity  = isIdentity
+
+public export
+XGroup AbelianGroup where
+    xInvert     = invert
+    xHasInverse = hasInverse
+    xIsInverse  = isInverse
