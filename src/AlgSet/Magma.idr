@@ -11,13 +11,24 @@ IsClosed {t} s m =
     (x : t) -> (p : s x) -> (y : t) -> (q : s y) -> s (m x p y q)
 
 public export
-record IsMagma (t : Type) (s : Set t) (m : SetOp2 s) where
-    constructor MkMagmaProp
-    isClosed : IsClosed s m
+record Magma (t : Type) where
+    constructor MkMagma
+    carrierSet : Set t
+    magmaOp    : SetOp2 carrierSet
+    isClosed   : IsClosed carrierSet magmaOp
 
 public export
-record Magma (t : Type) (s : Set t) where
-    constructor MkMagma
-    mult    : (x : t) -> s x -> (y : t) -> s y -> t
-    isMagma : IsMagma t s mult
+interface XMagma (r : Type -> Type) where
+    xCarrier   : {t : Type} -> r t -> Set t
+    xOperation : (rec : r t) -> SetOp2 (xCarrier rec)
+    xIsClosed  : (rec : r t) -> IsClosed (xCarrier rec) (xOperation rec)
 
+public export
+xMagma : XMagma r => r t -> Magma t
+xMagma r = MkMagma (xCarrier r) (xOperation r) (xIsClosed r)
+
+public export
+XMagma Magma where
+    xCarrier   = carrierSet
+    xOperation = magmaOp
+    xIsClosed  = isClosed
