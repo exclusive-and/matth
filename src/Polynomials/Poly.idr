@@ -14,49 +14,66 @@ import Convolution
 import Prelude.List
 
 
+||| Polynomials as lists of coefficients from a ring.
 public export
 data Polynomial : (coeffTy : Type) -> (r : Ring coeffTy) -> Type where
     Poly : List (DPair coeffTy (carrierSet r)) -> Polynomial coeffTy r
 
+||| Add two polynomials together using an open zip.
 public export
-polyAdd : {r : Ring t} -> Polynomial t r -> Polynomial t r -> Polynomial t r
+polyAdd : {r : Ring t}
+       -> Polynomial t r
+       -> Polynomial t r
+       -> Polynomial t r
+
 polyAdd {r} (Poly aCoeffs) (Poly bCoeffs) =
     Poly $ openZipWith id id go aCoeffs bCoeffs
   where
-    go : DPair t (carrierSet r) -> DPair t (carrierSet r) -> DPair t (carrierSet r)
-    go (MkDPair x p) (MkDPair y q) =
-      let
-        addGroup = ringAddGroup r
-        add      = xOperation addGroup
-        closed   = xIsClosed addGroup
-      in
-        MkDPair (add x y) (closed x p y q)
+    go : DPair t (carrierSet r)
+      -> DPair t (carrierSet r)
+      -> DPair t (carrierSet r)
+    go (x ** p) (y ** q) =
+        MkDPair (addOp r x y) (addIsClosed r x p y q)
 
+||| Invert a polynomial by inverting all its coefficients.
 public export
-polyMul : {r : Ring t} -> Polynomial t r -> Polynomial t r -> Polynomial t r
+polyAddInvert : {r : Ring t}
+             -> Polynomial t r
+             -> Polynomial t r
+
+polyAddInvert {r} (Poly xs) = Poly $ map go xs where
+    go : DPair t (carrierSet r)
+      -> DPair t (carrierSet r)
+    go (x ** p) =
+        MkDPair (addInvert r x) (addHasInverse r x p)
+
+||| Multiply two polynomials with a convolution.
+public export
+polyMul : {r : Ring t}
+       -> Polynomial t r
+       -> Polynomial t r
+       -> Polynomial t r
+
 polyMul {r} (Poly aCoeffs) (Poly bCoeffs) =
     Poly $ map reduce $ convolveWith go aCoeffs bCoeffs
   where
-    go : DPair t (carrierSet r) -> DPair t (carrierSet r) -> DPair t (carrierSet r)
+    go : DPair t (carrierSet r)
+      -> DPair t (carrierSet r)
+      -> DPair t (carrierSet r)
     go (x ** p) (y ** q) =
-      let
-        mulSemigroup = ringMulSemigroup r
-        mul          = xOperation mulSemigroup
-        closed       = xIsClosed mulSemigroup
-      in
-        MkDPair (mul x y) (closed x p y q)
+        MkDPair (mulOp r x y) (mulIsClosed r x p y q)
 
-    goReduce : DPair t (carrierSet r) -> DPair t (carrierSet r) -> DPair t (carrierSet r)
+    goReduce : DPair t (carrierSet r)
+            -> DPair t (carrierSet r)
+            -> DPair t (carrierSet r)
     goReduce (x ** p) (acc ** accq) =
-      let
-        addGroup = ringAddGroup r
-        add      = xOperation addGroup
-        closed   = xIsClosed addGroup
-      in
-        MkDPair (add x acc) (closed x p acc accq)
+        MkDPair (addOp r x acc) (addIsClosed r x p acc accq)
 
-    reduce : List (DPair t (carrierSet r)) -> DPair t (carrierSet r)
-    reduce Nil       = MkDPair (addIdentity r) (addHasIdentity r)
+    reduce : List (DPair t (carrierSet r))
+          -> DPair t (carrierSet r)
+    reduce Nil =
+        MkDPair (addIdentity r) (addHasIdentity r)
+
     reduce (x :: xs) = goReduce x (reduce xs)
 
 
@@ -67,11 +84,6 @@ polyAddAssoc = ?realPolyAddAssoc
 public export
 nilPolyIsPolyAddId : IsIdentity (Poly Nil) polyAdd
 nilPolyIsPolyAddId = ?realNilPolyIsPolyAddId
-
-public export
-polyAddInvert : {r : Ring t} -> Polynomial t r -> Polynomial t r
-polyAddInvert {r} (Poly xs) =
-    Poly $ map (\(MkDPair x p) => MkDPair (addInvert r x) (addHasInverse r x p)) xs
 
 public export
 isPolyAddInverse : {r : Ring t} -> IsInverse (Poly Nil) polyAdd polyAddInvert
