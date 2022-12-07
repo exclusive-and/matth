@@ -18,6 +18,7 @@ public export
 data Polynomial : (coeffTy : Type) -> (r : Ring coeffTy) -> Type where
     Poly : List (DPair coeffTy (carrierSet r)) -> Polynomial coeffTy r
 
+public export
 polyAdd : {r : Ring t} -> Polynomial t r -> Polynomial t r -> Polynomial t r
 polyAdd {r} (Poly aCoeffs) (Poly bCoeffs) =
     Poly $ openZipWith id id go aCoeffs bCoeffs
@@ -31,7 +32,7 @@ polyAdd {r} (Poly aCoeffs) (Poly bCoeffs) =
       in
         MkDPair (add x y) (closed x p y q)
 
-
+public export
 polyMul : {r : Ring t} -> Polynomial t r -> Polynomial t r -> Polynomial t r
 polyMul {r} (Poly aCoeffs) (Poly bCoeffs) =
     Poly $ map reduce $ convolveWith go aCoeffs bCoeffs
@@ -59,15 +60,52 @@ polyMul {r} (Poly aCoeffs) (Poly bCoeffs) =
     reduce (x :: xs) = goReduce x (reduce xs)
 
 
+public export
+polyAddAssoc : IsAssociative polyAdd
+polyAddAssoc = ?realPolyAddAssoc
 
-postulate intAddAssoc : IsAssociative {t = Int} (\x => ()) (+)
+public export
+nilPolyIsPolyAddId : IsIdentity (Poly Nil) polyAdd
+nilPolyIsPolyAddId = ?realNilPolyIsPolyAddId
 
-postulate intAddId : IsIdentity {t = Int} (\x => ()) 0 (+)
+public export
+polyAddInvert : {r : Ring t} -> Polynomial t r -> Polynomial t r
+polyAddInvert {r} (Poly xs) =
+    Poly $ map (\(MkDPair x p) => MkDPair (addInvert r x) (addHasInverse r x p)) xs
 
-postulate intAddInv : IsInverse {t = Int} (\x => ()) 0 (+) negate
+public export
+isPolyAddInverse : {r : Ring t} -> IsInverse (Poly Nil) polyAdd polyAddInvert
+isPolyAddInverse = ?realIsPolyAddInverse
+
+public export
+polyMulAssoc : IsAssociative polyMul
+polyMulAssoc = ?realPolyMulAssoc
+
+public export
+polynomialRing : {r : Ring t} -> Ring (Polynomial t r)
+polynomialRing {r} =
+    MkRing
+        (\x => ())  -- The polynomial set's only restriction is that all
+                    -- coefficients are in the carrier set of the ring. Since
+                    -- that's enforced by construction, the set is trivial.
+        -- Polynomial addition group laws
+        polyAdd (\x, p, y, q => ())
+        polyAddAssoc
+        (Poly Nil) () nilPolyIsPolyAddId
+        polyAddInvert (\x, p => ()) (isPolyAddInverse {r})
+        -- Polynomial multiplication semigroup laws
+        polyMul (\x, p, y, q => ())
+        polyMulAssoc
 
 
-postulate intMulAssoc : IsAssociative {t = Int} (\x => ()) (*)
+postulate intAddAssoc : IsAssociative {t = Int} (+)
+
+postulate intAddId : IsIdentity {t = Int} 0 (+)
+
+postulate intAddInv : IsInverse {t = Int} 0 (+) negate
+
+
+postulate intMulAssoc : IsAssociative {t = Int} (*)
 
 export
 intRing : Ring Int
