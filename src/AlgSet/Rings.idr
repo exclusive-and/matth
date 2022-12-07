@@ -3,6 +3,7 @@ module AlgSet.Rings
 
 import Theory.AxiomJ
 import Theory.Sets
+import Theory.Homomorphisms
 import AlgSet.Magma
 import AlgSet.Semigroups
 import AlgSet.Monoids
@@ -79,13 +80,26 @@ subringIsRing sub =
         (mulIsAssociative super)
 
 
+public export
+record RingHom (domainTy : Type) (codomainTy : Type) where
+    constructor MkRingHom
+    domain   : Ring domainTy
+    codomain : Ring codomainTy
+
+    homMap : domainTy -> codomainTy
+
+    preservesAdd : HomPreserves (addOp domain) (addOp codomain) homMap
+    preservesMul : HomPreserves (mulOp domain) (mulOp codomain) homMap
+
+
 ||| Example rings (TODO: prove laws)
 
 public export
 intRing : Ring Int
 intRing =
     MkRing
-        (\x => ()) (+) (\x, p, y, q => ())
+        (\x => ())
+        (+) (\x, p, y, q => ())
         intAddAssoc
         intAddCommutes
         0 () zeroIsIntAddId
@@ -107,3 +121,48 @@ intRing =
 
     intMulAssoc : IsAssociative {t = Int} (*)
     intMulAssoc = ?realIntMulAssoc
+
+||| Even subring of integer ring.
+public export
+evenIntSubInt : SubRing Int
+evenIntSubInt =
+    MkSubRing
+        intRing
+        (\x => DPair Int (\k => Id (2 * k) x))
+        evenIntRingAddIsClosed
+        (0 ** refl)
+        evenIntRingAddHasInv
+        evenIntRingMulIsClosed
+  where
+    evenIntRingAddIsClosed : IsClosed (\x => DPair Int (\k => Id (2 * k) x)) (+)
+    evenIntRingAddIsClosed x (j ** p) y (k ** q) =
+        ?realEvenIntRingAddIsClosed
+
+    evenIntRingAddHasInv : HasInverse (\x => DPair Int (\k => Id (2 * k) x)) negate
+    evenIntRingAddHasInv x (k ** p) =
+        ?realEvenIntRingAddHasInv
+
+    evenIntRingMulIsClosed : IsClosed (\x => DPair Int (\k => Id (2 * k) x)) (*)
+    evenIntRingMulIsClosed x (j ** p) y (k ** q) =
+        ?realEvenIntRingMulIsClosed
+
+||| Ring of even integers from even subring.
+public export
+evenIntRing : Ring Int
+evenIntRing = subringIsRing evenIntSubInt
+
+||| Homomorphism from integer ring to even ring.
+public export
+intToEvenIntHom : RingHom Int Int
+intToEvenIntHom =
+    MkRingHom
+        intRing evenIntRing
+        (* 2)
+        preservesAdd
+        preservesMul
+  where
+    preservesAdd : HomPreserves {domainTy = Int} {codomainTy = Int} (+) (+) (* 2)
+    preservesAdd = ?realPreservesAdd
+
+    preservesMul : HomPreserves {domainTy = Int} {codomainTy = Int} (*) (*) (* 2)
+    preservesMul = ?realPreservesMul

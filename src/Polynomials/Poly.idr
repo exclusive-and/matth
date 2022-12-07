@@ -115,10 +115,18 @@ polynomialRing {r} =
         polyMulAssoc
 
 
-export
+public export
 poly1 : Polynomial Int AlgSet.Rings.intRing
 poly1 = Poly [MkDPair 1 (), MkDPair 0 (), MkDPair 1 ()]
 
-export
+public export
 poly2 : Polynomial Int AlgSet.Rings.intRing
 poly2 = Poly [MkDPair 7 (), MkDPair 2 ()]
+
+public export
+poly3 : Polynomial Int AlgSet.Rings.evenIntRing
+poly3 = Poly [MkDPair 6 (3 ** refl), MkDPair 54 (27 ** refl), MkDPair 22 (11 ** refl)]
+
+public export
+poly4 : Polynomial Int AlgSet.Rings.evenIntRing
+poly4 = Poly [MkDPair 38 (19 ** refl), MkDPair 32 (16 ** refl)]
