@@ -10,10 +10,8 @@ import AlgSet.Magma
 
 public export
 IsAssociative : {t : Type} -> (t -> t -> t) -> Type
-IsAssociative {t} m = (x : t)
-                   -> (y : t)
-                   -> (z : t)
-                   -> Id (m x (m y z)) (m (m x y) z)
+IsAssociative {t} m =
+    (x : t) -> (y : t) -> (z : t) -> Id (m x (m y z)) (m (m x y) z)
 
 public export
 record Semigroup (t : Type) where
