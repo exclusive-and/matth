@@ -85,16 +85,101 @@ record RingHom (domainTy : Type) (codomainTy : Type) where
     constructor MkRingHom
     domain       : Ring domainTy
     codomain     : Ring codomainTy
-
-    homMap : domainTy -> codomainTy
-
+    -- Morphism laws
+    homMap       : domainTy -> codomainTy
+    homIsTotal   : (x : domainTy)
+                -> carrierSet domain x
+                -> carrierSet codomain (homMap x)
+    -- Structure-preserving laws
     preservesAdd : HomPreserves (addOp domain) (addOp codomain) homMap
     preservesMul : HomPreserves (mulOp domain) (mulOp codomain) homMap
 
 ||| Ring endomorphisms: trivial homomorphisms.
 public export
 ringEndo : Ring t -> RingHom t t
-ringEndo r = MkRingHom r r id (\x, y => refl) (\x, y => refl)
+ringEndo r =
+    MkRingHom r r id (\x, p => p) (\x, y => refl) (\x, y => refl)
+
+
+||| Ideal of a ring.
+public export
+record Ideal (t : Type) (ring : Ring t) where
+    constructor MkIdeal
+    subset   : Set t
+    isSubset : IsSubset subset (carrierSet ring)
+    -- Addition subgroup
+    addIsClosed     : IsClosed subset (addOp ring)
+    addHasIdentity  : subset (addIdentity ring)
+    addHasInverse   : HasInverse subset (addInvert ring)
+    -- R-closure under multiplication
+    rMulIsClosed : (r : t) -> (carrierSet ring r)
+                -> (x : t) -> subset x
+                -> subset (mulOp ring r x)
+
+public export
+kerSet : RingHom domainTy codomainTy -> domainTy -> Type
+kerSet hom x =
+    ( carrierSet (domain hom) x
+    , Id (homMap hom x) (addIdentity (codomain hom))
+    )
+
+||| The kernel of a homomorphism is an ideal.
+public export
+kerIdeal : RingHom domainTy codomainTy -> Ideal domainTy (domain hom)
+kerIdeal hom =
+    MkIdeal
+        (kerSet hom) (\x, p => fst p)
+        kerAddIsClosed
+        kerAddHasIdentity
+        ?kerAddHasInverse
+        ?kerRMulIsClosed
+  where
+    kerAddIsClosed : IsClosed (kerSet hom) (addOp (domain hom))
+    kerAddIsClosed x (p1, p2) y (q1, q2) =
+      let
+        add   = addOp $ domain hom
+        coadd = addOp $ codomain hom
+        f     = homMap hom
+
+        step1 = transport {prop = Id (f (add x y))} (preservesAdd hom x y) refl
+        -- Id (hom (m x y)) (hom (m x y)) -----> Id (hom (m x y)) (n (hom x) (hom y))   by preservesAdd
+        step2 = transport {prop = \k => Id (f (add x y)) (coadd k (f y))} p2 step1
+        -- Id (hom (m x y)) (n (hom x) (hom y)) -----> Id (hom (m x y)) (n 0 (hom y))   by p
+        step3 = transport {prop = Id (f (add x y))} (addIsIdentity (codomain hom) (f y)) step2
+        -- Id (hom (m x y)) (n 0 (hom y)) -----> Id (hom (m x y)) (hom y)               by addIsIdentity
+        step4 = transport {prop = Id (f (add x y))} q2 step3
+        -- Id (hom (m x y)) (hom y) -----> Id (hom (m x y)) 0                           by q
+      in
+        (addIsClosed (domain hom) x p1 y q1, step4)
+
+    kerAddHasIdentity : kerSet hom (addIdentity (domain hom))
+    kerAddHasIdentity =
+      let
+        step1 = ?realKerAddHasIdentity
+      in
+        (addHasIdentity (domain hom), step1)
+
+
+public export
+zeroSet : Ring t -> t -> Type
+zeroSet r x = Id (addIdentity r) x
+
+||| A ring with only the ideals {0} and R is simple.
+public export
+data TrivialIdeal
+    : (t : Type) -> (r : Ring t) -> Ideal t r -> Type
+  where
+    ZeroIdeal : (i : Ideal t r)
+             -> SetEq (zeroSet (ring i)) (subset i)
+             -> TrivialIdeal t r i
+
+    FullIdeal : (i : Ideal t r)
+             -> SetEq (carrierSet (ring i)) (subset i)
+             -> TrivialIdeal t r i
+
+public export
+IsSimpleRing : (r : Ring t) -> Type
+IsSimpleRing r = (i : Ideal t r) -> TrivialIdeal t r i
 
 
 ||| Example rings (TODO: prove laws)
@@ -163,12 +248,12 @@ intToEvenIntHom =
     MkRingHom
         intRing
         evenIntRing
-        (* 2)
+        (2 *) (\x, p => MkDPair x refl)
         preservesAdd
         preservesMul
   where
-    preservesAdd : HomPreserves {domainTy = Int} {codomainTy = Int} (+) (+) (* 2)
+    preservesAdd : HomPreserves {domainTy = Int} {codomainTy = Int} (+) (+) (2 *)
     preservesAdd = ?realPreservesAdd
 
-    preservesMul : HomPreserves {domainTy = Int} {codomainTy = Int} (*) (*) (* 2)
+    preservesMul : HomPreserves {domainTy = Int} {codomainTy = Int} (*) (*) (2 *)
     preservesMul = ?realPreservesMul
